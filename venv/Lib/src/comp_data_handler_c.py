@@ -72,7 +72,7 @@ class comp_data_handler_c:
         self.comp_data   = None
 
         self.temp_date   = None
-
+        
         ## Statements ##
         self.b_s         = None # balance sheet
         self.inc_s       = None # income statement
@@ -95,6 +95,9 @@ class comp_data_handler_c:
         :param ticker:
         :return:
         """
+        if (not os.path.isdir(COMPANIES_DB_BASE_PATH)):
+            os.makedirs(COMPANIES_DB_BASE_PATH)
+        
         # set the ticker for the entire handler
 
         self.ticker = ticker
@@ -104,7 +107,23 @@ class comp_data_handler_c:
             self.comp_data = pickle.load(f)
 
         else:
+            # create the folder
+            os.makedirs(COMPANIES_DB_BASE_PATH + self.ticker)
+
+            # download all company data using request handler
+            # self.request_handler.get_year_data()
+            
+            # 
             self.crate_db_template()
+    
+    
+    def update_local_pkl(self, dic_to_update):
+        pkl_path  = COMPANIES_DB_BASE_PATH + self.ticker + "/"
+        f = open(pkl_path + self.ticker + DB_FILE_FORMAT, "wb")
+        pickle.dump(dic_to_update, f)
+        f.close()
+
+        return
 
     def crate_db_template(self):
         """
@@ -112,7 +131,7 @@ class comp_data_handler_c:
         :return:
         """
         # create the folder
-        os.makedirs(COMPANIES_DB_BASE_PATH + self.ticker)
+        #os.makedirs(COMPANIES_DB_BASE_PATH + self.ticker)
 
         # crate empty templates
         pkl_path  = COMPANIES_DB_BASE_PATH + self.ticker + "/"
@@ -198,18 +217,26 @@ class comp_data_handler_c:
                     if check_all_docs_found(): break
         return
 
-
     def get_doc_date(self):
         d = pd.read_excel(TEMP_XLSX_FILE_NAME,
                           0,
                           index_col = 0,
                           engine="openpyxl")
 
-       # date = d.loc["Document Period End Date"][0].replace("\n","").replace("\t", "")
-        date = d.loc["Document Period End Date"][0]
-        dt = parse(str(date))
-        return dt.strftime('%Y-%m-%d')
+        dt = None
+        date = list(d.loc["Document Period End Date"])
+        for d in date: 
+            try:
+                dt = parse(str(d).replace("\n"," ").replace("\t"," "))
+                return dt.strftime('%Y-%m-%d')
 
+            except:
+                continue
+            
+        # dt = parse(str(date))
+        # return dt.strftime('%Y-%m-%d')
+        if dt == None:
+            dt = parse(str(date))
 
     def parse_raw_df(self,
                      df,
@@ -267,18 +294,28 @@ class comp_data_handler_c:
 
     def get_multiplier(self, df): ## TODO - reutrn both $, stock multipliers
         mulitpler = df.iloc[0,0].lower().split("$")
+        shares_multy  = 1
+        numeric_multy = 1
+        
         for candidate in mulitpler:
             if ("share" not in candidate):
                 if ("thousand" in candidate):
-                    return 10e3
+                    numeric_multy = THOUSNADS
                 elif ("million" in candidate):
-                    return 10e6
+                    numeric_multy = MILLIONS
                 elif ("billion" in candidate):
-                    return 10e9
+                    numeric_multy = BILLIONS
+            else:
+                if ("thousand" in candidate):
+                    shares_multy = THOUSNADS
+                elif ("million" in candidate):
+                    shares_multy = MILLIONS
+                elif ("billion" in candidate):
+                    shares_multy = BILLIONS
+                
 
-        print("Could not find the multipler for df: \n", df.head())
-        return 1
-
+        # print("Could not find the multipler for ", self.ticker)
+        return (numeric_multy, shares_multy)
 
     def months_in_header(self, l : list):
         if len(l) == 0:
@@ -317,19 +354,36 @@ class comp_data_handler_c:
         return df
 
     def prase_balance_sheet(self):
+        
+        def update_dic(df_to_iterate: pd.DataFrame,
+                       original_dic : dict,
+                       _type         : str,
+                       date):
+            temp_d = original_dic
+            for row_idx in range(len(df_to_iterate.index)):
+                tag,val = df_to_iterate.iloc[row_idx,0].lower(), df_to_iterate.iloc[row_idx,1]
+                if (not pd.isna(val)):
+                    tag = statements_templates.convert_naming_convention(tag, _type)
+                    if (tag != ""):
+                        original_dic = _utils.add_data_to_statement(key = tag, d = original_dic, data_to_write = {date:val})
+
+            
+            return original_dic
+        
         if(self.temp_b_s.empty):
             print("Balance sheet of {} is empty DF".format(self.ticker))
             return
 
-        new_bs = balance_sheet_template
         multiplier = self.get_multiplier(self.temp_b_s)
 
         # divide into sections
-        current_assets_idx = non_current_assetes_idx = None
+        current_assets_idx      = non_current_assetes_idx     = None
         current_liabilities_idx = non_current_liabilities_idx = None
-        # current assetes:
+        equity_idx              = None
+        
         title_row = total_row = None
-
+        
+        # current assetes:
         for row_idx in range(len(self.temp_b_s.index)):
             tag,val = self.temp_b_s.iloc[row_idx,0].lower(), self.temp_b_s.iloc[row_idx,1]
             tag = tag.replace(":", "").replace("-", " ")
@@ -340,10 +394,10 @@ class comp_data_handler_c:
                 if (title_row == None):
                     print("ERROR")
                 else:
-                    current_assets_idx = {"title_row":title_row, "total_row":total_row}
+                    current_assets_idx = {TITLE_ROW:title_row, TOTAL_ROW:total_row}
                     break
 
-        non_current_assetes_idx = {"title_row":total_row + 1}
+        non_current_assetes_idx = {TITLE_ROW:total_row + 1}
 
         # non current assetes
         for row_idx in range(total_row + 1, len(self.temp_b_s.index)):
@@ -351,40 +405,46 @@ class comp_data_handler_c:
             tag = tag.replace(":", "").replace("-", " ")
             if (("total" in tag and "assets" in tag and not pd.isna(val))):
                 total_row = row_idx
-                non_current_assetes_idx["total_row"] = total_row
+                non_current_assetes_idx[TOTAL_ROW] = total_row
             elif ("liabilities" in tag):
                 total_row = row_idx - 1
-                non_current_assetes_idx["total_row"] = total_row
+                non_current_assetes_idx[TOTAL_ROW] = total_row
                 break
 
-        current_liabilities_idx = {"title_row": total_row + 1}
+        current_liabilities_idx = {TITLE_ROW: total_row + 1}
 
         # current liabilties
         for row_idx in range(total_row + 1, len(self.temp_b_s.index)):
             tag, val = self.temp_b_s.iloc[row_idx, 0].lower(), self.temp_b_s.iloc[row_idx, 1]
             tag = tag.replace(":", "").replace("-", " ")
             if ("current" in tag and "liabilities" in tag and pd.isna(val)):
-                current_liabilities_idx = {"title_row":row_idx}
+                current_liabilities_idx = {TITLE_ROW:row_idx}
             if ("total" in tag and "liabilities" in tag and not pd.isna(val)):
-                current_liabilities_idx["total_row"] = row_idx
+                current_liabilities_idx[TOTAL_ROW] = row_idx
                 break
             elif ("equity" in tag):
-                current_liabilities_idx["total_row"] = row_idx - 1
+                current_liabilities_idx[TOTAL_ROW] = row_idx - 1
                 break
 
         # non current liabilties
-        non_current_liabilities_idx = {"title_row": row_idx + 1}
+        non_current_liabilities_idx = {TITLE_ROW: row_idx + 1}
         for row_idx in range(row_idx + 1, len(self.temp_b_s.index)):
             tag,val = self.temp_b_s.iloc[row_idx,0].lower(), self.temp_b_s.iloc[row_idx,1]
             tag = tag.replace(":", "").replace("-", " ")
             if (("total" in tag and "liabilities" in tag and not pd.isna(val))):
                 total_row = row_idx
-                non_current_liabilities_idx["total_row"] = total_row
+                non_current_liabilities_idx[TOTAL_ROW] = total_row
                 break
+            
+        # equity index
+        equity_idx = {TITLE_ROW: row_idx + 1, TOTAL_ROW : len(self.temp_b_s.index)}        
+
+
+        
 
 
         # check that all idxes make sense:
-        idxs_list = [current_assets_idx, non_current_assetes_idx,current_liabilities_idx,non_current_liabilities_idx]
+        idxs_list = [current_assets_idx, non_current_assetes_idx,current_liabilities_idx,non_current_liabilities_idx, equity_idx]
         for idx in idxs_list:
             if (idx == None):
                 print("ERROR: could not parse {} balance sheet - did not found idxes".format(self.ticker))
@@ -393,36 +453,39 @@ class comp_data_handler_c:
                 print("ERROR: parsing balance - did not find a whole pair of idxes for {}".format(self.ticker))
                 return
 
-            if (idx["title_row"] == idx["total_row"]):
-                print("ERROR: parsed {} balance sheet - and used the same index {}".format(self.ticker, idx["title_row"]))
+            if (idx[TITLE_ROW] == idx[TOTAL_ROW]):
+                print("ERROR: parsed {} balance sheet - and used the same index {}".format(self.ticker, idx[TITLE_ROW]))
                 return
 
-        assets_df              = self.temp_b_s.iloc[current_assets_idx["title_row"]:non_current_assetes_idx["total_row"] + 1]
-        liablities_df          = self.temp_b_s.iloc[current_liabilities_idx["title_row"]:non_current_liabilities_idx["total_row"] + 1]
-        current_assets_df      = self.temp_b_s.iloc[current_assets_idx["title_row"]:current_assets_idx["total_row"] + 1]
-        current_liabilities_df = self.temp_b_s.iloc[current_liabilities_idx["title_row"]:current_liabilities_idx["total_row"] + 1]
-        non_current_assets_df  = self.temp_b_s.iloc[non_current_assetes_idx["title_row"]:non_current_assetes_idx["total_row"] + 1]
+        assets_df              = self.temp_b_s.iloc[current_assets_idx[TITLE_ROW]:non_current_assetes_idx[TOTAL_ROW] + 1]
+        liablities_df          = self.temp_b_s.iloc[current_liabilities_idx[TITLE_ROW]:non_current_liabilities_idx[TOTAL_ROW] + 1]
+        current_assets_df      = self.temp_b_s.iloc[current_assets_idx[TITLE_ROW]:current_assets_idx[TOTAL_ROW] + 1]
+        current_liabilities_df = self.temp_b_s.iloc[current_liabilities_idx[TITLE_ROW]:current_liabilities_idx[TOTAL_ROW] + 1]
+        non_current_assets_df  = self.temp_b_s.iloc[non_current_assetes_idx[TITLE_ROW]:non_current_assetes_idx[TOTAL_ROW] + 1]
+        non_current_liablities_df = self.temp_b_s.iloc[non_current_liabilities_idx[TITLE_ROW]:non_current_liabilities_idx[TOTAL_ROW] + 1]
+        equity_df                 = self.temp_b_s.iloc[equity_idx[TITLE_ROW]:equity_idx[TOTAL_ROW] + 1]
+        
 
 
         # current assets
-        for row_idx in range(len(current_assets_df.index)):
-            tag,val = current_assets_df.iloc[row_idx,0].lower(), current_assets_df.iloc[row_idx,1]
-            if (not pd.isna(val)):
-                tag = statements_templates.convert_naming_convention(tag, statements_templates.ASSETS_ST)
-                if (tag != ""):
-                    self.comp_data[BALANCE] = _utils.add_data_to_statement(key = tag, d = self.comp_data[BALANCE], data_to_write = {self.temp_date:val})
-
+        self.comp_data[BALANCE] = update_dic(current_assets_df, self.comp_data[BALANCE], statements_templates.ASSETS_ST, self.temp_date)
+        
         # non current assets
-        for row_idx in range(len(non_current_assets_df.index)):
-            tag,val = non_current_assets_df.iloc[row_idx,0].lower(), non_current_assets_df.iloc[row_idx,1]
-            if (not pd.isna(val)):
-                print("tag = ", tag, val)
-                tag = statements_templates.convert_naming_convention(tag, statements_templates.ASSETS_LT)
-                if (tag != ""):
-                    print("adding : ", tag, " ", val)
-                    self.comp_data[BALANCE] = _utils.add_data_to_statement(key = tag, d = self.comp_data[BALANCE], data_to_write = {self.temp_date:val})
+        self.comp_data[BALANCE] = update_dic(non_current_assets_df, self.comp_data[BALANCE], statements_templates.ASSETS_LT, self.temp_date)
+        
+        # current liabilties
+        self.comp_data[BALANCE] = update_dic(current_liabilities_df, self.comp_data[BALANCE], statements_templates.LIABILATIES_ST, self.temp_date)
+        
+        # non current liablities
+        self.comp_data[BALANCE] = update_dic(non_current_liablities_df, self.comp_data[BALANCE], statements_templates.LIABILATIES_LT, self.temp_date)
 
-        print(self.comp_data[BALANCE]["assets"]["non current"])
+        # equity
+        self.comp_data[BALANCE] = update_dic(equity_df, self.comp_data[BALANCE], statements_templates.EQUITY, self.temp_date)
+        
+        # update local pickle copy
+        self.update_local_pkl(self.comp_data)
+        
+
 
 
 
@@ -459,8 +522,10 @@ class comp_data_handler_c:
 
 
     def work(self):
+        self.get_comp_db(self.ticker)
         self.get_temp_sheets()
-        self.parse_raw_df()
+        self.parse_raw_df(self.temp_b_s, BALANCE)
+        self.convert_general_to_template(self.temp_b_s, BALANCE)
 
     def check_type(self, type : str):
         if type not in [BALANCE, INCOME, CASHFLOW]:
@@ -469,11 +534,13 @@ class comp_data_handler_c:
         return True
 
 
-C = comp_data_handler_c("MMM")
-C.get_comp_db("MMM")
-C.get_temp_sheets()
-C.parse_raw_df(C.temp_b_s, BALANCE)
-C.convert_general_to_template(C.temp_b_s, BALANCE)
-# C.prase_balance_sheet()
+# =============================================================================
+# C = comp_data_handler_c("MMM")
 # C.get_comp_db("MMM")
+# C.get_temp_sheets()
+# C.parse_raw_df(C.temp_b_s, BALANCE)
+# C.convert_general_to_template(C.temp_b_s, BALANCE)
+# # C.prase_balance_sheet()
+# # C.get_comp_db("MMM")
+# =============================================================================
 

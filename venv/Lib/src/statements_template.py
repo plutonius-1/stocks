@@ -1,5 +1,6 @@
 import difflib
 
+
 BALANCE_SHEET_TEMPLATE = {
 
     "assets":{
@@ -129,12 +130,47 @@ BALANCE_SHEET_TEMPLATE = {
 
 CASH_FLOW_TEMPLATE = {}
 
-INCOME_STATEMENT_TEMPLATE = {}
+INCOME_STATEMENT_TEMPLATE = {
+    
+    "revenue":{"total":{}},
+    
+    "cost of soods":{"total":{}},
+    
+    "Depreciation & Amortization Expense":{"total":{}},
+    
+    "Gross Income":{"total":{}},
+    
+    "SG&A Expense":{"total":{}},
+    
+    "Unusual Expense":{"total":{}},
+    
+    "ebit":{"total":{}},
+    
+    "Non Operating Income/Expense":{"total":{}},
+    
+    "Non-Operating Interest Income":{"total":{}},
+    
+    "Interest Expense":{"total":{}},
+    
+    "Pretax Income":{"total":{}},
+    
+    "Income Tax":{"total":{}},
+    
+    "Net Income":{"total":{}},
+    
+    "Dividends":{"total":{}},
+    
+    "eps":{"total":{}},
+    
+    "eps (diluted)":{"total":{}},
+    
+    "ebitdat":{"total":{}}
+    }
 
 
 ######################################
 ## BALANCE SHEET TYPES ##
-
+EQUITY   = "equity"
 ASSETS_ST = "short term assets"
 ASSETS_LT = "long term assets"
 LIABILATIES_ST = "short term liabilities"
@@ -156,20 +192,19 @@ other_long_term_investments_cands = {"other long-term investments":["other long-
 long_term_note_receivables_cands  = {"long-term note receivables":["long-term note receivables","long term receivables"]}
 net_goodwill_cands                = {"net goodwill":["net goodwill","goodwill"]}
 other_intangibles_cands           = {"net other intangibles":["net other intangibles","other intangibles","intangibles"]}
-lease_assets_cands                = {"lease assets":["lease","lease assets"]}
+lease_assets_cands                = {"lease assets":["lease","lease assets","operating lease","lease assets"]}
 other_lt_assets_cands             = {"other lt assets":["other long term assets"]}
 total_assets_cands                = {"total assets":["total assets"]}
 
 #######################################
 #### LIABILITIES CANDIDATES LISTS #####
-
 short_term_debt_cands = {"short term debt":["short term debt","short term borrowing", "current debt"]}
 long_term_debt_cands  = {"long term debt":["long term debt"]}
 accounts_payable_cands = {"accounts payable":["accounts payable"]}
 accrued_expenses_cands          = {"accrued expenses":["accrued expenses"]}
 other_current_liablities_cands  = {"other current liabilities":["other current liabilities", "other"]}
 total_current_liabilities_cands = {"total current liabilities":["total current liabilities"]}
-lease_obligations_cands         = {"lease obligations":["lease obligations","lease","operating lease"]}
+lease_obligations_cands         = {"lease obligations":["lease obligations","lease","operating lease","lease liabilities"]}
 provisions_cands                = {"provisions":["provisions"]}
 pension_cands                   = {"pension":["pension", "postretirement"]}
 deferred_taxes_cands            = {"deferred taxes":["deferred taxes"]}
@@ -177,8 +212,30 @@ other_lt_liabilities_cands      = {"other lt liabilities":["other lt liabilities
 deferred_income_cands           = {"deferred income":["deferred income"]}
 total_liabilities_cands         = {"total liabilities":["total liabilities"]}
 
+######################################
+###### EQUITY CANDIDATES LIST ########
+preferred_stock_cands = {"preferred stock":["preferred stock"]}
+common_stock_cands    = {"common stock":["common stock"]}
+retained_earnings_cands = {"retained earnings":["retained earnings"]}
+debt_guarantee_cands    = {"debt guarantee":["debt guarantee"]}
+cumulative_translation_adjustment_exch_cands = {"cumulative translation adjustment":["cumulative translation adjustment exch"]}
+unrealized_gain_loss_marketable_securities_cands = {"unrealized gain/loss marketable securities":["unrealized gain/loss marketable securities","unrealized gain loss","gain loss marketable securities"]}
+revaluation_reserves_cands = {"revaluation reserves":["revaluation reserves"]}
+treasury_stock_cands = {"treasury stock":["treasury stock"]}
+total_shareholders_equity_cands = {"total shareholders' equity":["total shareholders' equity"]}
+accumulated_minority_interest_cands = {"accumulated minority interest":["accumulated minority interest","minority interest","Noncontrolling interest","Non controlling interest"]}
+total_equity_cands   = {"total equity":["total equity"]}
+liabilities_shareholders_equity_cands = {"liabilities & shareholders' equity":["liabilities & shareholders' equity"]}
+
+
+
+
 def convert_naming_convention(input : str,
                               type  : str):
+    """
+    input: - str: the name to convert to template 
+    type:  - what kind of statement? balance long/short? income? CF?
+    """
 
     max_group_name = ""
     max_group      = 0
@@ -221,6 +278,21 @@ def convert_naming_convention(input : str,
                         deferred_income_cands,
                         other_lt_liabilities_cands,
                         total_liabilities_cands]
+        
+    elif (type == EQUITY):
+        cands_groups = [
+            preferred_stock_cands,
+            common_stock_cands,
+            retained_earnings_cands,
+            debt_guarantee_cands,
+            cumulative_translation_adjustment_exch_cands,
+            unrealized_gain_loss_marketable_securities_cands,
+            revaluation_reserves_cands,
+            treasury_stock_cands,
+            total_shareholders_equity_cands,
+            accumulated_minority_interest_cands,
+            total_equity_cands,
+            liabilities_shareholders_equity_cands]
 
 
     for group in cands_groups:
@@ -234,7 +306,6 @@ def convert_naming_convention(input : str,
         if (g_max > max_group):
             max_group = g_max
             max_group_name = list(group.keys())[0]
-    print("input: ", input, "max name: ", max_group_name)
 
     return max_group_name
 

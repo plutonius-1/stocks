@@ -1,3 +1,4 @@
+import numpy as np
 
 def levenshtein(seq1, seq2):
     size_x = len(seq1) + 1
@@ -40,13 +41,12 @@ def add_data_to_statement(key : str,
                 # return d
         return d
 
+def pretty(d, indent=0):
+   for key, value in d.items():
+      print('\t' * indent + str(key))
+      if isinstance(value, dict):
+         pretty(value, indent+1)
+      else:
+         print('\t' * (indent+1) + str(value))
 
-def print_nested_dict(d : dict):
-    if (len(d) == 1):
-        print(d)
-        return
-
-    for i in d.keys():
-        if (type(d[i]) == dict):
-            print_nested_dict(d[i])
 

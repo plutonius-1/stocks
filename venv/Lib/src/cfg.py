@@ -22,25 +22,37 @@ SEC_ARCHIVE_COMPANIES_INDEX = 'https://www.sec.gov/Archives/edgar/full-index/'
 SEC_ARCHIVE_BASE            = "https://www.sec.gov/Archives/"
 TEMP_YEAR                   = "temp_year.html"
 TEMP_COMPANIES_INDEX_NAME   = "temp_companies_index.txt"
+TEMP_COMPANIES_QTR_INDEX_NAME = "temp_companies_index"
+TEMP_IDX_FILE_TYPE          = ".txt"
 TEMP_XLSX_FILE_NAME         = "tmp_xlsx_file.xlsx"
-COMPANIES_DB_BASE_PATH      = "C:/Users/avsha/Documents/python_envs/stock_analysis_env/venv/DB/"
+#COMPANIES_DB_BASE_PATH      = "C:/Users/avsha/Documents/python_envs/stock_analysis_env/venv/DB/"
+COMPANIES_DB_BASE_PATH      = "./DB/"
 DB_FILE_FORMAT              = ".pkl"
 
 ### CIK CONSTS ###
-URL = 'http://www.sec.gov/cgi-bin/browse-edgar?CIK={}&Find=Search&owner=exclude&action=getcompany'
+CIK_URL = 'http://www.sec.gov/cgi-bin/browse-edgar?CIK={}&Find=Search&owner=exclude&action=getcompany'
 CIK_RE = re.compile(r'.*CIK=(\d{10}).*')
 ##################
 
 FINANCIAL_REPORT_POSTFIX = "Financial_Report.xlsx"
 WRITE       = "w"
+READ        = "r"
 URL_POSTFIX = "/"
 HTML_LINK_TYPE = "a"
 HTML_HREF_TYPE = "href"
-
+HTML_PARSER    = "html.parser"
 ### functions ###
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 #################
+
+
+################ MISC #####################
+THOUSNADS = 1e3
+MILLIONS  = 1e6
+BILLIONS  = 1e9
+TITLE_ROW = "title_row"
+TOTAL_ROW = "total_row"
 
 
 ########### COMP DATA HANDLER ###########

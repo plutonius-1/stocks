@@ -22,43 +22,54 @@ def add_data_to_statement(key : str,
             return d
 
 
-counts = {}
-pbs    = {}
-for i in range(1,70):
-    if (i >= 1 and i < 10):
-        key = "0"+str(i)
-    else:
-        key = str(i)
+# counts = {}
+# pbs    = {}
+# for i in range(1,70):
+#     if (i >= 1 and i < 10):
+#         key = "0"+str(i)
+#     else:
+#         key = str(i)
 
-    counts[key] = 0
+#     counts[key] = 0
 
-for i in range(1,40):
-    if (i >= 1 and i < 10):
-        key = "0"+str(i)
-    else:
-        key = str(i)
-    pbs[key] = 0
-
-
-df = pd.read_csv("C:/Users/avsha/Downloads/Lottery_Powerball_Winning_Numbers__Beginning_2010(1).csv")
-numbers = df["Winning Numbers"]
+# for i in range(1,40):
+#     if (i >= 1 and i < 10):
+#         key = "0"+str(i)
+#     else:
+#         key = str(i)
+#     pbs[key] = 0
 
 
-max_ps = 0
-for row in numbers:
-    t =     int(row.split()[-1])
-    if (int(row.split()[-1]) > max_ps):
-        max_ps = t
+# df = pd.read_csv("C:/Users/avsha/Downloads/Lottery_Powerball_Winning_Numbers__Beginning_2010(1).csv")
+# numbers = df["Winning Numbers"]
 
-for row in numbers:
-    split = row.split()
-    for i in range(len(split) - 1):
-        counts[split[i]] += 1
 
-    pbs[split[i + 1]] += 1
+# max_ps = 0
+# for row in numbers:
+#     t =     int(row.split()[-1])
+#     if (int(row.split()[-1]) > max_ps):
+#         max_ps = t
 
-nums = list(counts.keys())
-hits = list(counts.values())
+# for row in numbers:
+#     split = row.split()
+#     for i in range(len(split) - 1):
+#         counts[split[i]] += 1
+
+#     pbs[split[i + 1]] += 1
+
+# nums = list(counts.keys())
+# hits = list(counts.values())
+def get_score(inp, options):
+    breakdown = inp.split()
+    
+    score = 0
+    
+    for word in breakdown:
+        for o in options:
+            score += _utils.levenshtein(inp, o)    
+    return score
+
+
 
 
 # fig = plt.figure()
