@@ -122,7 +122,8 @@ class requestst_handler_c:
             temp_xlsx_files_paths = find_urls_in_idx_file(idx_file, cik)
             
             xlsx_files_paths += temp_xlsx_files_paths
-        
+            idx_file.close()
+
         for file in idx_files:
             os.remove("./" + file)
         
@@ -210,7 +211,8 @@ class requestst_handler_c:
                     self.get_xlsx_file(SEC_ARCHIVE_BASE + link)
 
                     # let the comp_data_handler prase the data and add to DB
-                    self._comp_data_handler = comp_data_handler_c(ticker)
+
+                    self._comp_data_handler = Lib.src.comp_data_handler_c.comp_data_handler_c(ticker)
                     self._comp_data_handler.work()
 
 

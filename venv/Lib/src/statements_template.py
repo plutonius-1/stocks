@@ -134,16 +134,20 @@ INCOME_STATEMENT_TEMPLATE = {
     
     "revenue":{"total":{}},
     
-    "cost of soods":{"total":{}},
+    "cost of sales":{"total":{}},
     
-    "Depreciation & Amortization Expense":{"total":{}},
+    "depreciation & amortization expense":{"total":{}},
     
-    "Gross Income":{"total":{}},
+    "gross income":{"total":{}},
     
-    "SG&A Expense":{"total":{}},
-    
-    "Unusual Expense":{"total":{}},
-    
+    "sg&a expense":{"total":{}},
+
+    "r&d expense":{"total":{}},
+
+    "unusual expense":{"total":{}},
+
+    "unusual income":{"total":{}},
+
     "ebit":{"total":{}},
     
     "Non Operating Income/Expense":{"total":{}},
@@ -227,8 +231,17 @@ accumulated_minority_interest_cands = {"accumulated minority interest":["accumul
 total_equity_cands   = {"total equity":["total equity"]}
 liabilities_shareholders_equity_cands = {"liabilities & shareholders' equity":["liabilities & shareholders' equity"]}
 
-
-
+#####################################
+###### INCOME STATEMENT #############
+revenue_cands = {"revenue":["revenue", "revenues", "net revenue","net revenues", "net sales", "sales"]}
+cost_of_goods_cands = {"cost of sales":["total cost of sales", "cost of sales", "cost of sales", "total operating expenses", "operating expenses"]}
+depreciation_amortization_expense_cands = {"depreciation & amortization expense":["depreciation & amortization expense","depreciation amortization", "total depreciation amortization", "depreciation and amortization"]}
+gross_income_cands = {"gross income":["operating income", "total gross income", "gross incomei","operating income"]}
+sga_expense_cands = {"sg&a expense":["selling, administrative, and other expenses","general and administrative expenses", "selling, general and administrative expenses"]}
+rd_expense_cands  = {"r&d expense":["research, development and related expenses", "technology and development", "research and development", "research & development"]}
+unusual_expense_cands = {"unusual expense":["unusual expense"]}
+unusual_income_cands =  {"unusual income": ["unusual income"]}
+ebit_cands           = {}
 
 def convert_naming_convention(input : str,
                               type  : str):

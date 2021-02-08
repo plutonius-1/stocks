@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 def levenshtein(seq1, seq2):
     size_x = len(seq1) + 1
@@ -49,4 +50,22 @@ def pretty(d, indent=0):
       else:
          print('\t' * (indent+1) + str(value))
 
+
+def find_DB_dir():
+
+    curr_dir_name = os.getcwd().split("\\")[-1]
+    full_path     = __file__
+    new_path      = os.getcwd()
+
+    while curr_dir_name != "venv":
+
+        # windows
+        new_path = [i + "/" for i in new_path.split("\\")[:-2]]
+        if (len(new_path) == 0):
+            new_path = [i + "/" for i in new_path.split("/")[:-2]]
+        curr_dir_name = new_path[-1].replace("/","").replace("\\","")
+        new_path = "".join(new_path)
+
+
+    return "".join(new_path) + "/DB/"
 

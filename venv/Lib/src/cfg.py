@@ -26,7 +26,7 @@ TEMP_COMPANIES_QTR_INDEX_NAME = "temp_companies_index"
 TEMP_IDX_FILE_TYPE          = ".txt"
 TEMP_XLSX_FILE_NAME         = "tmp_xlsx_file.xlsx"
 #COMPANIES_DB_BASE_PATH      = "C:/Users/avsha/Documents/python_envs/stock_analysis_env/venv/DB/"
-COMPANIES_DB_BASE_PATH      = "./DB/"
+COMPANIES_DB_BASE_PATH      = _utils.find_DB_dir()
 DB_FILE_FORMAT              = ".pkl"
 
 ### CIK CONSTS ###
