@@ -360,17 +360,6 @@ class comp_data_handler_c:
         return df
     
 
-    def prase_income_statement(self):
-
-        # income statement is not empty
-        if (self.temp_inc_s.empty):
-            print("Income statement of {} is empty DF - not parsing income statement".format(self.temp_inc_s))
-            return
-
-        # get multiplier
-        multiplier = self.get_multiplier(self.temp_inc_s)
-
-        return
 
 
     def prase_balance_sheet(self):
@@ -510,25 +499,64 @@ class comp_data_handler_c:
 
 
 
-    def parse_income_statement():
+    def parse_income_statement(self):
+        
+        def update_dic(df_to_iterate: pd.DataFrame,
+                       original_dic : dict,
+                       _type         : str,
+                       date,
+                       multiplier = 1):
+            temp_d = original_dic
+            for row_idx in range(len(df_to_iterate.index)):
+                if (not pd.isna(df_to_iterate.iloc[row_idx,0])):
+                    tag,val = df_to_iterate.iloc[row_idx,0].lower(), df_to_iterate.iloc[row_idx,1]
+                    if (not pd.isna(val)):
+                        tag = statements_templates.convert_naming_convention(tag, _type)
+                        # val_multi = statements_templates.expense_or_income(tag)
+                        # print("val, type=",val,type(val))
+                        val = multiplier * val
+                        
+                        if (tag != ""):
+                            original_dic = _utils.add_data_to_statement(key = tag, d = original_dic, data_to_write = {date:val})
+            
+                        
+            must_haves = ["net income"]
+            for m in must_haves:
+                
+            
+            return original_dic
+        
+        
         if (self.temp_inc_s.empty):
-            print("temp income statement of {} is empty".format(self.ticker))
+            print("temp income statement of {} is empty - not parsing".format(self.ticker))
             return
         
         # get income statement multiplier
-        multipler = self.get_multiplier(self.temp_inc_s)
+        numeric_multi, shares_multi = self.get_multiplier(self.temp_inc_s)
         
         
         income_idx = per_share_idx = None
         
-        # general income part
-        for row_idx in range(len(self.temp_inc_s.index)):
-            tag,val = self.temp_inc_s.iloc[row_idx,0].lower(), self.temp_inc_s.iloc[row_idx,1]
-
+        # get general and per share idxes
+        for row_idx in range(1, len(self.temp_inc_s.index)):
+            if (not pd.isna(self.temp_inc_s.iloc[row_idx,0])):
+                tag,val = self.temp_inc_s.iloc[row_idx,0].lower(), self.temp_inc_s.iloc[row_idx,1]
+                if ("per" in tag and "share" in tag):
+                    income_idx    = row_idx - 1
+                    per_share_idx = row_idx
+                    break
+        
+        income_df = self.temp_inc_s.iloc[0:income_idx + 1]
+        per_share_df = self.temp_inc_s.iloc[per_share_idx:]
+        
+        # general income data
+        self.comp_data[INCOME] = update_dic(income_df, self.comp_data[INCOME], statements_templates.INCOME, self.temp_date, numeric_multi)
+        
         # per share data
+        self.comp_data[INCOME] = update_dic(per_share_df, self.comp_data[INCOME], statements_templates.INCOME_PER_SHARE, self.temp_date, numeric_multi)
         
-        
-        
+        # update local pkl
+        self.update_local_pkl(self.comp_data)
         return
 
 
@@ -541,8 +569,8 @@ class comp_data_handler_c:
         if (self.check_type(type) and not df.empty):
 
             if (type == INCOME):
-                pass # TODO
-
+                self.parse_income_statement()
+                
             elif (type == BALANCE):
                 self.prase_balance_sheet()
 
@@ -566,8 +594,15 @@ class comp_data_handler_c:
     def work(self):
         self.get_comp_db(self.ticker)
         self.get_temp_sheets()
+        
+        # prase raw df
         self.parse_raw_df(self.temp_b_s, BALANCE)
+        self.parse_raw_df(self.temp_inc_s, INCOME)
+        
+        # update local dict/pkl
         self.convert_general_to_template(self.temp_b_s, BALANCE)
+        self.convert_general_to_template(self.temp_inc_s, INCOME)
+        
 
     def check_type(self, type : str):
         if type not in [BALANCE, INCOME, CASHFLOW]:

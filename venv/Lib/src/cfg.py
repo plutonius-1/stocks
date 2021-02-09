@@ -48,9 +48,9 @@ def eprint(*args, **kwargs):
 
 
 ################ MISC #####################
-THOUSNADS = 1e3
-MILLIONS  = 1e6
-BILLIONS  = 1e9
+THOUSNADS = 1000
+MILLIONS  = 1000000
+BILLIONS  = 1000000000
 TITLE_ROW = "title_row"
 TOTAL_ROW = "total_row"
 

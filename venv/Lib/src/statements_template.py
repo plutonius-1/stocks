@@ -3,7 +3,7 @@ import re
 
 def expense_or_income(text_to_check : str):
     expense_key_words = ["expense", "loss", "expenses", "losses"]
-    income_key_words  = ["income", "benefit", "benefits", "incomes"]
+    income_key_words  = ["income", "benefit", "revenue", "revenures", "benefits", "incomes"]
     pat = "\(.*\)"
     search = re.search(pat, text_to_check)
     if (search):
@@ -285,7 +285,7 @@ dividends_cands             = {"dividends":["dividends"]}
 
 ###############################################
 ################ PER SHARE CANDIDATES #########
-eps_cands                   = {"eps":["earnings per share","basic earning","income per share","basic per share", "basic"]}
+eps_cands                   = {"eps":["earnings per share","basic earning","income per share","basic per share", "basic", "loss per share"]}
 eps_diluted_cands           = {"eps (diluted)":["earnings per share (diluted)","diluted earning","income per share diluted","diluted per share", "diluted"]}
 
 
@@ -300,6 +300,7 @@ def convert_naming_convention(input : str,
     max_group_name = ""
     max_group      = 0
     cands_groups   = []
+    must_have      = []
 
     if (type == ASSETS_ST):
         cands_groups = [cash_only_cands,
@@ -353,12 +354,48 @@ def convert_naming_convention(input : str,
             accumulated_minority_interest_cands,
             total_equity_cands,
             liabilities_shareholders_equity_cands]
+        
+    elif (type == INCOME):
+        cands_groups = [
+            revenue_cands,
+            cost_of_goods_cands,
+            depreciation_amortization_expense_cands,
+            gross_income_cands,
+            sga_expense_cands,
+            rd_expense_cands,
+            unusual_expense_cands,
+            unusual_income_cands,
+            non_operating_income_cands,
+            non_operating_expense_cands,
+            interest_expense_cands,
+            interest_revenue_cands,
+            pretax_income_cands,
+            income_tax_cands,
+            net_income_cands,
+            net_loss_cands,
+            dividends_cands
+            ]
+        
+        must_have = [
+            net_income_cands
+            ]
+        
+    elif (type == INCOME_PER_SHARE):
+            cands_groups = [
+                eps_cands,
+                eps_diluted_cands
+                ]
+
+
+
 
 
     for group in cands_groups:
         g_max = 0
+        
         candidates = difflib.get_close_matches(input, list(group.values())[0])
 
+        print("input = ", input, "\n cands = ", candidates)
         for g in candidates:
             res = difflib.SequenceMatcher(None, input, g).ratio()
             if (res > g_max):
@@ -366,7 +403,7 @@ def convert_naming_convention(input : str,
         if (g_max > max_group):
             max_group = g_max
             max_group_name = list(group.keys())[0]
-
+        print("max grroup name=  ", max_group_name)
     return max_group_name
 
 

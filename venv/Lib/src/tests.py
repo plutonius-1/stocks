@@ -34,17 +34,10 @@ def get_score(inp, options):
 import pickle
 
 
-# with open('/home/avshalom/Documents/python_projects/stock_analysis/stocks/venv/DB/GME/GME.pkl', 'rb') as f:
-#     data = pickle.load(f)
+with open('/home/avshalom/Documents/python_projects/stock_analysis/stocks/venv/DB/MMM/MMM.pkl', 'rb') as f:
+    data = pickle.load(f)
 
-# print(data["balance"])
+print(_utils.pretty(data["income"]))
 
-
-import re
-text = "income tax (expense) benefit"
-pat = "\(.*\)"
-r = re.search(pat, text)
-if (r):
-    print(r.group(0).replace("(","").replace(")",""))
 
 
