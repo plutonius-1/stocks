@@ -1,4 +1,21 @@
 import difflib
+import re
+
+def expense_or_income(text_to_check : str):
+    expense_key_words = ["expense", "loss", "expenses", "losses"]
+    income_key_words  = ["income", "benefit", "benefits", "incomes"]
+    pat = "\(.*\)"
+    search = re.search(pat, text_to_check)
+    if (search):
+        t = search.group(0).replace("(","").replace(")","")
+        if (t in expense_key_words):
+            return -1
+        elif (t in income_key_words):
+            return 1
+        else:
+            return None
+    return None
+
 
 
 BALANCE_SHEET_TEMPLATE = {
@@ -150,25 +167,31 @@ INCOME_STATEMENT_TEMPLATE = {
 
     "ebit":{"total":{}},
     
-    "Non Operating Income/Expense":{"total":{}},
+    "non operating income":{"total":{}},
+
+    "non operating expense":{"total":{}},
     
-    "Non-Operating Interest Income":{"total":{}},
+    "non-operating interest income":{"total":{}},
     
-    "Interest Expense":{"total":{}},
+    "interest revenue":{"total":{}},
     
-    "Pretax Income":{"total":{}},
+    "interest expense":{"total":{}},
     
-    "Income Tax":{"total":{}},
+    "pretax income":{"total":{}},
     
-    "Net Income":{"total":{}},
+    "income tax":{"total":{}},
     
-    "Dividends":{"total":{}},
+    "net income":{"total":{}},
+    
+    "net loss":{"total":{}},
+    
+    "dividends":{"total":{}},
     
     "eps":{"total":{}},
     
     "eps (diluted)":{"total":{}},
     
-    "ebitdat":{"total":{}}
+    "ebitdat":{"total":{}} # TODO
     }
 
 
@@ -233,6 +256,14 @@ liabilities_shareholders_equity_cands = {"liabilities & shareholders' equity":["
 
 #####################################
 ###### INCOME STATEMENT #############
+
+#####################################
+######### TYPES######################
+INCOME = "income"
+INCOME_PER_SHARE = "income per share"
+
+############################################
+############ INCOME CANDIDATES LIST ########
 revenue_cands = {"revenue":["revenue", "revenues", "net revenue","net revenues", "net sales", "sales"]}
 cost_of_goods_cands = {"cost of sales":["total cost of sales", "cost of sales", "cost of sales", "total operating expenses", "operating expenses"]}
 depreciation_amortization_expense_cands = {"depreciation & amortization expense":["depreciation & amortization expense","depreciation amortization", "total depreciation amortization", "depreciation and amortization"]}
@@ -242,6 +273,22 @@ rd_expense_cands  = {"r&d expense":["research, development and related expenses"
 unusual_expense_cands = {"unusual expense":["unusual expense"]}
 unusual_income_cands =  {"unusual income": ["unusual income"]}
 ebit_cands           = {}
+non_operating_income_cands  = {"non operating income":["other income (expense), net", "other income (expense)", "other income"]}
+non_operating_expense_cands = {"non operating expense":["other expense (income)", "other expense"]}
+interest_expense_cands      = {"interest expense":["interest expense"]}
+interest_revenue_cands      = {"interest revenue":["interest revenue"]}
+pretax_income_cands         = {"pretax income":["income before taxes","pretax income","loss before taxes", "before taxes", "income (loss) before income tax","loss (income) before income tax"]}
+income_tax_cands            = {"income tax":["income tax","income taxes"]}
+net_income_cands            = {"net income":["net income"]}
+net_loss_cands              = {"net loss":["net loss"]}
+dividends_cands             = {"dividends":["dividends"]}
+
+###############################################
+################ PER SHARE CANDIDATES #########
+eps_cands                   = {"eps":["earnings per share","basic earning","income per share","basic per share", "basic"]}
+eps_diluted_cands           = {"eps (diluted)":["earnings per share (diluted)","diluted earning","income per share diluted","diluted per share", "diluted"]}
+
+
 
 def convert_naming_convention(input : str,
                               type  : str):

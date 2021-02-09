@@ -352,6 +352,7 @@ class comp_data_handler_c:
             df = df.drop(columns = i[1])
 
         return df
+    
 
     def prase_balance_sheet(self):
         
@@ -364,6 +365,8 @@ class comp_data_handler_c:
                 tag,val = df_to_iterate.iloc[row_idx,0].lower(), df_to_iterate.iloc[row_idx,1]
                 if (not pd.isna(val)):
                     tag = statements_templates.convert_naming_convention(tag, _type)
+                    # val_multi = statements_templates.expense_or_income(tag)
+                    
                     if (tag != ""):
                         original_dic = _utils.add_data_to_statement(key = tag, d = original_dic, data_to_write = {date:val})
 
@@ -488,6 +491,26 @@ class comp_data_handler_c:
 
 
 
+    def parse_income_statement():
+        if (self.temp_inc_s.empty):
+            print("temp income statement of {} is empty".format(self.ticker))
+            return
+        
+        # get income statement multiplier
+        multipler = self.get_multiplier(self.temp_inc_s)
+        
+        
+        income_idx = per_share_idx = None
+        
+        # general income part
+        for row_idx in range(len(self.temp_inc_s.index)):
+            tag,val = self.temp_inc_s.iloc[row_idx,0].lower(), self.temp_inc_s.iloc[row_idx,1]
+
+        # per share data
+        
+        
+        
+        return
 
 
     def convert_general_to_template(self,

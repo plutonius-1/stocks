@@ -1,5 +1,5 @@
 import numpy as np
-import os
+import os, sys
 
 def levenshtein(seq1, seq2):
     size_x = len(seq1) + 1
@@ -56,16 +56,24 @@ def find_DB_dir():
     curr_dir_name = os.getcwd().split("\\")[-1]
     full_path     = __file__
     new_path      = os.getcwd()
+    platfrom      = sys.platform
+    
+    if (platfrom == "linux"):
+        return "/home/avshalom/Documents/python_projects/stock_analysis/stocks/venv/DB/"
+    if (platfrom == "window"):
+        return None ## TODO
+    # while curr_dir_name != "venv":
+    #     print(new_path)
+    #     # windows
+    #     if (sys.platform == "windwos"):
+    #         new_path = [i + "/" for i in new_path.split("\\")[:-2]]
+            
+    #     if (sys.platform == "linux"):
+    #         new_path = [i + "/" for i in new_path.split("/")[:-2]]
+    #     new_path = "".join(new_path)
+        
+    #     curr_dir_name = new_path[-1].replace("/","").replace("\\","")
 
-    while curr_dir_name != "venv":
 
-        # windows
-        new_path = [i + "/" for i in new_path.split("\\")[:-2]]
-        if (len(new_path) == 0):
-            new_path = [i + "/" for i in new_path.split("/")[:-2]]
-        curr_dir_name = new_path[-1].replace("/","").replace("\\","")
-        new_path = "".join(new_path)
-
-
-    return "".join(new_path) + "/DB/"
+    # return "".join(new_path) + "/DB/"
 

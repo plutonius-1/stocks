@@ -257,7 +257,7 @@ class requestst_handler_c:
         return
 
 rh = requestst_handler_c()
-rh.get_year_data("AAPL", 2019)
+rh.get_year_data("GME", 2019)
 # rh.get_all_idxs_files(2019)
 # rh.parse_all_idx_files("GME")
 # print(rh.get_cik("GME"))
