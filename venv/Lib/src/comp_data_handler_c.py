@@ -241,6 +241,12 @@ class comp_data_handler_c:
     def parse_raw_df(self,
                      df,
                      type : str):
+        """
+        takes the raw DF (balance, income, cashflow) csv - and converts it to 2 columns of tag
+        :param df:
+        :param type:
+        :return:
+        """
         # check date exists #
         if (self.temp_date == None):
             print("no date is in temp_date variable")
@@ -286,7 +292,7 @@ class comp_data_handler_c:
 
 
         if (type == INCOME):
-            pass
+            self.temp_inc_s = new_df
         elif (type == BALANCE):
             self.temp_b_s = new_df
         else:
@@ -353,6 +359,19 @@ class comp_data_handler_c:
 
         return df
     
+
+    def prase_income_statement(self):
+
+        # income statement is not empty
+        if (self.temp_inc_s.empty):
+            print("Income statement of {} is empty DF - not parsing income statement".format(self.temp_inc_s))
+            return
+
+        # get multiplier
+        multiplier = self.get_multiplier(self.temp_inc_s)
+
+        return
+
 
     def prase_balance_sheet(self):
         
