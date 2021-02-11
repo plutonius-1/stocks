@@ -520,9 +520,12 @@ class comp_data_handler_c:
                             original_dic = _utils.add_data_to_statement(key = tag, d = original_dic, data_to_write = {date:val})
             
                         
-            must_haves = ["net income"]
+            must_haves = ["net income", "income tax"]
             for m in must_haves:
-                
+                if (_utils.is_date_in_tag(m, str(self.temp_date), self.comp_data[INCOME]) is not True):                
+                    new_var = _utils.force_best_match_in_df(df_to_iterate, m)
+                    if (new_var != None):
+                        original_dic = _utils.add_data_to_statement(key = m, d = original_dic, data_to_write = {date:new_var})
             
             return original_dic
         

@@ -395,7 +395,7 @@ def convert_naming_convention(input : str,
         
         candidates = difflib.get_close_matches(input, list(group.values())[0])
 
-        print("input = ", input, "\n cands = ", candidates)
+        # print("input = ", input, "\n cands = ", candidates)
         for g in candidates:
             res = difflib.SequenceMatcher(None, input, g).ratio()
             if (res > g_max):
@@ -403,7 +403,7 @@ def convert_naming_convention(input : str,
         if (g_max > max_group):
             max_group = g_max
             max_group_name = list(group.keys())[0]
-        print("max grroup name=  ", max_group_name)
+        # print("max grroup name=  ", max_group_name)
     return max_group_name
 
 

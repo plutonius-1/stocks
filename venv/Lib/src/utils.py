@@ -1,5 +1,7 @@
 import numpy as np
 import os, sys
+import pandas as pd
+import difflib
 
 def levenshtein(seq1, seq2):
     size_x = len(seq1) + 1
@@ -41,6 +43,74 @@ def add_data_to_statement(key : str,
                 d[kid] = add_data_to_statement(key, d[kid], data_to_write)
                 # return d
         return d
+    
+
+    
+    
+def is_date_in_tag(tag : str,
+                   date : str,
+                   dic):
+    """
+    looks for the the 'date' in 'tag' return True or None
+    """
+    if (tag in dic.keys()):
+        if (date in dic[tag]):
+            return True
+        
+    else:
+        for k in dic.keys():
+            if (type(dic[k]) == dict):
+                if (is_date_in_tag(tag, date, dic[k])) == True:
+                    return True
+        
+        
+        
+def force_best_match_in_df(df           : pd.DataFrame,
+                           name_to_find : str):
+    # print(list(df.index))
+    
+    best_match = ""
+    base_cutoff = 0.6
+    best_matches = []
+    OPTIONS_WANTED = 3
+    
+    # best_matches = difflib.get_close_matches(name_to_find, list(df.index))
+    # if (len_best_matches == 0):
+    new_df = df
+    new_df.index = df[df.columns[0]]
+    candidats = [str(i) for i in new_df.index if not pd.isna(i)]
+        
+    while base_cutoff > 0:
+        # print("name to find :", name_to_find)
+        # print("index: ", list(df.index))
+        best_matches = difflib.get_close_matches(name_to_find, candidats,n=len(new_df.index), cutoff = base_cutoff)
+        base_cutoff -= 0.02
+
+    # print("best matches so far: ", best_matches)
+    sorted_list = []
+    partial_words_tags = []
+    for tag in best_matches:
+        sub_words_match = 0
+        for sub_word in name_to_find.split():
+            if (sub_word in tag.lower()):
+                sub_words_match += 1
+        if (sub_words_match == len(name_to_find.split())):
+            sorted_list.append(tag)
+        elif (sub_words_match < len(name_to_find.split()) and sub_words_match > 0):
+            partial_words_tags.append(tag)
+
+    best_matches = []
+    base_cutoff = 0.6
+    while len(best_matches) == 0 and base_cutoff > 0:
+        best_matches = difflib.get_close_matches(name_to_find, sorted_list, cutoff = base_cutoff)
+        base_cutoff -= 0.02
+        
+    if (len(best_matches) > 0):
+        print("best match found: ", best_matches[0])
+        print("values = ", new_df.loc[best_matches[0]].values)
+        return new_df.loc[best_matches[0]].values[1]
+    else:
+        return None
 
 def pretty(d, indent=0):
    for key, value in d.items():
@@ -76,4 +146,12 @@ def find_DB_dir():
 
 
     # return "".join(new_path) + "/DB/"
+    
 
+test_dic = {'income': {'Net income attributable to 3M': 1, 'b': 2,
+                       "Net income including noncontrolling interest":1,
+                       "Weighted average 3M common shares outstanding - diluted (in shares)":2,
+                       "operating income":2}}
+# print(is_date_in_tag("g","sub",test_dic))
+# df = pd.DataFrame(data = test_dic)
+# force_best_match_in_df(df, "net income")
